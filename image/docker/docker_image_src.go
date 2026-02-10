@@ -223,6 +223,10 @@ func newPullClient(sys *types.SystemContext, logicalRef dockerReference, pullSou
 	if err != nil {
 		return nil, err
 	}
+	registryProxy, err := sysregistriesv2.ParseProxy(pullSource.Endpoint.Proxy)
+	if err != nil {
+		return nil, err
+	}
 
 	endpointSys := sys
 	// sys.DockerAuthConfig does not explicitly specify a registry; we must not blindly send the credentials intended for the primary endpoint to mirrors.
@@ -238,6 +242,7 @@ func newPullClient(sys *types.SystemContext, logicalRef dockerReference, pullSou
 		return nil, err
 	}
 	client.tlsClientConfig.InsecureSkipVerify = pullSource.Endpoint.Insecure
+	client.registryProxy = registryProxy
 	client.namespaceProxy = pullSource.Endpoint.NamespaceProxy
 
 	return &pullEndpoint{client: client, ref: physicalRef, endpointSys: endpointSys}, nil
